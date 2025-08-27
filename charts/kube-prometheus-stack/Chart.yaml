@@ -36,7 +36,9 @@ stages:
         steps:
           - task: UsePythonVersion@0
             inputs:
-              versionSpec: '3.x'
+              versionSpec: '3.10'
+              addToPath: true
+            displayName: 'Use Python 3.10'
 
           - script: |
               echo "Setting environment variables"
@@ -48,6 +50,7 @@ stages:
 
               echo "Logging into Vault"
               VAULT_TOKEN=$(vault write -format=json auth/approle/login role_id=$ROLE_ID secret_id=$SECRET_ID | jq -r .auth.client_token)
+              export VAULT_TOKEN
 
               echo "Fetching Azure credentials from Vault"
               CLIENT_ID=$(vault kv get -field=azure_application_id $VAULT_MOUNT/$SECRETS_PATH/azure)
