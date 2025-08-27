@@ -44,6 +44,11 @@ stages:
             inputs:
               secureFile: 'secret_id.txt'
 
+          - script: |
+              echo "Setting environment variables"
+              export ROLE_ID=$(cat $(DownloadRoleId.secureFilePath))
+              export SECRET_ID=$(cat $(DownloadSecretId.secureFilePath))
+
           - task: HelmInstaller@1
             inputs:
               helmVersionToInstall: 'latest'
@@ -66,12 +71,13 @@ stages:
             displayName: Install kubelogin
             
           - script: |
+              set -e
               echo "Python version:"
               python3 --version
 
               echo "Setting environment variables"
-              export ROLE_ID=$(cat ${{ variables.roleId }})
-              export SECRET_ID=$(cat ${{ variables.secretId }})
+              export ROLE_ID=$(cat $(DownloadRoleId.secureFilePath))
+              export SECRET_ID=$(cat $(DownloadSecretId.secureFilePath))
               export VAULT_ADDR=${{ variables.vault_address }}
               export VAULT_MOUNT=${{ variables.vault_mount }}
               export SECRETS_PATH=${{ variables.vault_secrets_path }}
