@@ -35,20 +35,9 @@ stages:
           clean: all
         steps:
           - script: |
-              echo "Checking installed Python versions:"
-              which python || true
-              which python3 || true
-              python --version || true
-              python3 --version || true
-            displayName: 'Debug Python availability'
+              echo "Python version:"
+              python3 --version
 
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '3.6'
-              addToPath: true
-            displayName: 'Use Python 3.6'
-
-          - script: |
               echo "Setting environment variables"
               export ROLE_ID=$(cat ${{ variables.roleId }})
               export SECRET_ID=$(cat ${{ variables.secretId }})
@@ -58,7 +47,6 @@ stages:
 
               echo "Logging into Vault"
               VAULT_TOKEN=$(vault write -format=json auth/approle/login role_id=$ROLE_ID secret_id=$SECRET_ID | jq -r .auth.client_token)
-              export VAULT_TOKEN
 
               echo "Fetching Azure credentials from Vault"
               CLIENT_ID=$(vault kv get -field=azure_application_id $VAULT_MOUNT/$SECRETS_PATH/azure)
@@ -86,5 +74,4 @@ stages:
                 --namespace monitoring --create-namespace \
                 --values prometheus.yaml \
                 --debug --atomic
-
-            displayName: Helm Install Kube Prometheus Stack
+            displayName: 'Install and Deploy Prometheus Stack'
