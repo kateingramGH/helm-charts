@@ -63,14 +63,6 @@ stages:
               echo "Using kubelogin"
               kubelogin --version
 
-              # Now all other commands that use kubelogin, e.g.:
-              kubelogin convert-kubeconfig -l spn --client-id $CLIENT_ID --client-secret $CLIENT_SECRET
-
-              # Your remaining commands here...
-            displayName: "Install kubelogin and deploy"
-            
-          - script: |
-              set -e
               echo "Python version:"
               python3 --version
 
@@ -110,4 +102,4 @@ stages:
                 --namespace monitoring --create-namespace \
                 --values prometheus.yaml \
                 --debug --atomic
-            displayName: 'Install and Deploy Prometheus Stack'
+            displayName: 'Install kubelogin and Deploy Prometheus Stack'
