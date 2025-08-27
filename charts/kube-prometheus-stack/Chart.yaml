@@ -34,6 +34,16 @@ stages:
         workspace:
           clean: all
         steps:
+          - task: DownloadSecureFile@1
+            name: DownloadRoleId
+            inputs:
+              secureFile: 'role_id.txt'
+
+          - task: DownloadSecureFile@1
+            name: DownloadSecretId
+            inputs:
+              secureFile: 'secret_id.txt'
+              
           - script: |
               echo "Python version:"
               python3 --version
