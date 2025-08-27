@@ -50,11 +50,18 @@ stages:
 
           - script: |
               echo "Downloading kubelogin"
-              mkdir -p $(Agent.TempDirectory)/kubelogin
-              curl -L -o $(Agent.TempDirectory)/kubelogin/kubelogin-linux-amd64.zip https://github.com/Azure/kubelogin/releases/download/v0.0.20/kubelogin-linux-amd64.zip
-              unzip $(Agent.TempDirectory)/kubelogin/kubelogin-linux-amd64.zip -d $(Agent.TempDirectory)/kubelogin/
-              chmod +x $(Agent.TempDirectory)/kubelogin/kubelogin
-              export PATH=$(Agent.TempDirectory)/kubelogin:$PATH
+              curl -L -o kubelogin-linux-amd64.zip https://github.com/Azure/kubelogin/releases/latest/download/kubelogin-linux-amd64.zip
+
+              echo "Extracting kubelogin"
+              unzip kubelogin-linux-amd64.zip -d ./kubelogin
+
+              echo "Setting execute permissions"
+              chmod +x ./kubelogin/bin/linux_amd64/kubelogin
+
+              echo "Adding kubelogin to PATH"
+              export PATH=$PATH:$(pwd)/kubelogin/bin/linux_amd64
+
+              echo "Verifying kubelogin install"
               kubelogin --version
             displayName: Install kubelogin
             
