@@ -56,19 +56,18 @@ stages:
           - script: |
               echo "Downloading kubelogin"
               curl -L -o kubelogin-linux-amd64.zip https://github.com/Azure/kubelogin/releases/latest/download/kubelogin-linux-amd64.zip
-
-              echo "Extracting kubelogin"
               unzip kubelogin-linux-amd64.zip -d ./kubelogin
-
-              echo "Setting execute permissions"
               chmod +x ./kubelogin/bin/linux_amd64/kubelogin
-
-              echo "Adding kubelogin to PATH"
               export PATH=$PATH:$(pwd)/kubelogin/bin/linux_amd64
 
-              echo "Verifying kubelogin install"
+              echo "Using kubelogin"
               kubelogin --version
-            displayName: Install kubelogin
+
+              # Now all other commands that use kubelogin, e.g.:
+              kubelogin convert-kubeconfig -l spn --client-id $CLIENT_ID --client-secret $CLIENT_SECRET
+
+              # Your remaining commands here...
+            displayName: "Install kubelogin and deploy"
             
           - script: |
               set -e
