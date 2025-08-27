@@ -49,9 +49,13 @@ stages:
               helmVersionToInstall: 'latest'
 
           - script: |
-              curl -LO https://github.com/Azure/kubelogin/releases/download/v0.0.20/kubelogin-linux-amd64.zip
-              unzip kubelogin-linux-amd64.zip -d /usr/local/bin
-              chmod +x /usr/local/bin/kubelogin
+              echo "Downloading kubelogin"
+              mkdir -p $(Agent.TempDirectory)/kubelogin
+              curl -L -o $(Agent.TempDirectory)/kubelogin/kubelogin-linux-amd64.zip https://github.com/Azure/kubelogin/releases/download/v0.0.20/kubelogin-linux-amd64.zip
+              unzip $(Agent.TempDirectory)/kubelogin/kubelogin-linux-amd64.zip -d $(Agent.TempDirectory)/kubelogin/
+              chmod +x $(Agent.TempDirectory)/kubelogin/kubelogin
+              export PATH=$(Agent.TempDirectory)/kubelogin:$PATH
+              kubelogin --version
             displayName: Install kubelogin
             
           - script: |
