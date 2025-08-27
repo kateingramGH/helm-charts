@@ -43,7 +43,17 @@ stages:
             name: DownloadSecretId
             inputs:
               secureFile: 'secret_id.txt'
-              
+
+          - task: HelmInstaller@1
+            inputs:
+              helmVersionToInstall: 'latest'
+
+          - script: |
+              curl -LO https://github.com/Azure/kubelogin/releases/download/v0.0.20/kubelogin-linux-amd64.zip
+              unzip kubelogin-linux-amd64.zip -d /usr/local/bin
+              chmod +x /usr/local/bin/kubelogin
+            displayName: Install kubelogin
+            
           - script: |
               echo "Python version:"
               python3 --version
