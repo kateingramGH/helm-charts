@@ -34,6 +34,14 @@ stages:
         workspace:
           clean: all
         steps:
+          - script: |
+              echo "Checking installed Python versions:"
+              which python || true
+              which python3 || true
+              python --version || true
+              python3 --version || true
+            displayName: 'Debug Python availability'
+
           - task: UsePythonVersion@0
             inputs:
               versionSpec: '3.10'
