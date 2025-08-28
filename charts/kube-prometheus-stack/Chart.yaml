@@ -72,7 +72,7 @@ stages:
               TENANT_ID=$(vault kv get -field=tenant_id $VAULT_MOUNT/$SECRETS_PATH/azure)
               SUBSCRIPTION_ID=$(vault kv get -field=subscription_id $VAULT_MOUNT/$SECRETS_PATH/azure)
               RESOURCE_GROUP=$(vault kv get -field=azure_resource_group_name $VAULT_MOUNT/$SECRETS_PATH/azure)
-              CLUSTER_NAME=$(vault kv get -field=cluster_name_web $VAULT_MOUNT/$SECRETS_PATH/azure)
+              CLUSTER_NAME=$(vault kv get -field=cluster_name_pci $VAULT_MOUNT/$SECRETS_PATH/azure)
 
               echo "Logging into Azure"
               az login --output none --service-principal -u $CLIENT_ID -p $CLIENT_SECRET --tenant $TENANT_ID
