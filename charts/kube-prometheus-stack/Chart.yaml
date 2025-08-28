@@ -1,4 +1,4 @@
-name: Deploy_AKS_APPS_$(Build.BuildId)
+name: Deploy_Kube_Prometheus_Stack
 
 parameters:
   - name: deploy_kube_prometheus_stack
@@ -29,11 +29,12 @@ stages:
     condition: eq('${{ parameters.deploy_kube_prometheus_stack }}', true)
     jobs:
       - job: Helm_Deploy
-        displayName: Helm Install Kube-Prometheus-Stack
+        displayName: Helm Install kube-prometheus-stack
         pool: ${{ variables.pool_name }}
         workspace:
           clean: all
         steps:
+
           - task: DownloadSecureFile@1
             name: DownloadRoleId
             inputs:
@@ -44,27 +45,16 @@ stages:
             inputs:
               secureFile: 'secret_id.txt'
 
-          - script: |
-              echo "Setting environment variables"
-              export ROLE_ID=$(cat $(DownloadRoleId.secureFilePath))
-              export SECRET_ID=$(cat $(DownloadSecretId.secureFilePath))
-
           - task: HelmInstaller@1
             inputs:
               helmVersionToInstall: 'latest'
 
           - script: |
-              echo "Downloading kubelogin"
-              curl -L -o kubelogin-linux-amd64.zip https://github.com/Azure/kubelogin/releases/latest/download/kubelogin-linux-amd64.zip
-              unzip kubelogin-linux-amd64.zip -d ./kubelogin
-              chmod +x ./kubelogin/bin/linux_amd64/kubelogin
+              echo "Installing kubelogin"
+              curl -L -o kubelogin.zip https://github.com/Azure/kubelogin/releases/latest/download/kubelogin-linux-amd64.zip
+              unzip kubelogin.zip -d kubelogin
+              chmod +x kubelogin/bin/linux_amd64/kubelogin
               export PATH=$PATH:$(pwd)/kubelogin/bin/linux_amd64
-
-              echo "Using kubelogin"
-              kubelogin --version
-
-              echo "Python version:"
-              python3 --version
 
               echo "Setting environment variables"
               export ROLE_ID=$(cat $(DownloadRoleId.secureFilePath))
@@ -84,22 +74,28 @@ stages:
               RESOURCE_GROUP=$(vault kv get -field=azure_resource_group_name $VAULT_MOUNT/$SECRETS_PATH/azure)
               CLUSTER_NAME=$(vault kv get -field=cluster_name_pub $VAULT_MOUNT/$SECRETS_PATH/azure)
 
-              echo "Logging into Azure and configuring kubectl"
+              echo "Logging into Azure"
               az login --output none --service-principal -u $CLIENT_ID -p $CLIENT_SECRET --tenant $TENANT_ID
               az account set --subscription $SUBSCRIPTION_ID
+
+              echo "Getting AKS credentials"
               az aks get-credentials --overwrite-existing --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME
 
-              echo "Converting kubeconfig for SPN auth"
+              echo "Converting kubeconfig with kubelogin"
               kubelogin convert-kubeconfig -l spn --client-id $CLIENT_ID --client-secret $CLIENT_SECRET
 
               echo "Fetching Helm values from Vault"
-              vault kv get -format=json $VAULT_MOUNT/$SECRETS_PATH/prometheus | jq -r '.data.data' > prometheus.yaml
+              vault kv get -format=json $VAULT_MOUNT/$SECRETS_PATH/prometheus | jq -r '.data.data' > prometheus-values.yaml
 
-              echo "Deploying kube-prometheus-stack via Helm"
+              echo "Adding Helm repositories"
               helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+              helm repo add grafana https://grafana.github.io/helm-charts
               helm repo update
+
+              echo "Deploying kube-prometheus-stack version 77.0.2"
               helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
                 --namespace monitoring --create-namespace \
-                --values prometheus.yaml \
-                --debug --atomic
+                --version 77.0.2 \
+                --values prometheus-values.yaml \
+                --atomic --debug
             displayName: 'Install kubelogin and Deploy Prometheus Stack'
